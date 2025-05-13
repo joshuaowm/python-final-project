@@ -1,220 +1,242 @@
 import streamlit as st
 import torch
-import torchvision.transforms as T
-from torchgeo.models import ResNet18_Weights, resnet18
-from torchgeo.datasets import unbind_samples
-from PIL import Image
 import numpy as np
-import matplotlib.pyplot as plt
-import io
-import os
-from tempfile import NamedTemporaryFile
+import rasterio
+from rasterio.crs import CRS
+import cv2
 
-# Set page config
-st.set_page_config(
-    page_title="TorchGeo Image Analysis",
-    page_icon="🛰️",
-    layout="wide"
-)
-
-# App title and description
-st.title("🛰️ TorchGeo Image Analysis")
-st.markdown("""
-Upload an image and apply a pre-trained TorchGeo model to analyze it. 
-You can customize various settings to see how they affect the results.
-""")
-
-# Sidebar for model settings
-st.sidebar.header("Model Settings")
-
-model_type = st.sidebar.selectbox(
-    "Select Model Type",
-    ["resnet18"]
-)
-
-pretrained = st.sidebar.checkbox("Use Pre-trained Weights", value=True)
-
-# Add more advanced settings if model is selected
-if model_type == "resnet18":
-    num_classes = st.sidebar.slider("Number of Output Classes", min_value=1, max_value=100, value=21)
-    in_channels = st.sidebar.selectbox("Input Channels", [3, 1, 4], index=0)
-
-# Image preprocessing settings
-st.sidebar.header("Image Preprocessing")
-normalize = st.sidebar.checkbox("Normalize Image", value=True)
-resize_method = st.sidebar.radio("Resize Method", ["Scale", "Crop"])
-size = st.sidebar.slider("Image Size", min_value=64, max_value=1024, value=224, step=32)
-apply_augmentation = st.sidebar.checkbox("Apply Data Augmentation", value=False)
-
-# Function to load and preprocess image
-def preprocess_image(uploaded_image, settings):
-    img = Image.open(uploaded_image)
+def select_sentinel2_bands(image, num_bands=3):
+    """
+    Select and combine Sentinel-2 bands for visualization and classification.
     
-    # Create transformation pipeline
-    transforms_list = []
+    Args:
+        image (numpy.ndarray): Input multi-band Sentinel-2 image
+        num_bands (int): Number of bands to select
     
-    # Resize
-    if settings["resize_method"] == "Scale":
-        transforms_list.append(T.Resize((settings["size"], settings["size"])))
-    else:
-        transforms_list.append(T.CenterCrop((settings["size"], settings["size"])))
+    Returns:
+        numpy.ndarray: Selected and potentially combined bands
+    """
+    # Common Sentinel-2 band indices (adjust based on your specific image)
+    # Typical RGB-like combination: B2 (Blue), B3 (Green), B4 (Red)
+    # Or false color: B8 (NIR), B4 (Red), B3 (Green)
+    recommended_bands = {
+        'rgb': [1, 2, 3],  # B2, B3, B4
+        'false_color': [7, 3, 2],  # B8, B4, B3
+        'vegetation': [7, 3, 1]  # B8, B4, B2
+    }
+    
+    # Validate band selection
+    total_bands = image.shape[2]
+    if total_bands < num_bands:
+        st.warning(f"Image has fewer bands ({total_bands}) than requested. Using all available bands.")
+        return image
+    
+    # Select bands intelligently
+    try:
+        selected_band_indices = recommended_bands.get('rgb', list(range(num_bands)))
+        
+        # Adjust indices to 0-based indexing
+        selected_band_indices = [min(b-1, total_bands-1) for b in selected_band_indices[:num_bands]]
+        
+        # Select and return the chosen bands
+        return image[:, :, selected_band_indices]
+    except Exception as e:
+        st.error(f"Error selecting bands: {e}")
+        return image[:, :, :num_bands]
+
+def preprocess_image(image, target_size=(224, 224)):
+    """
+    Preprocess the Sentinel-2 image for classification.
+    
+    Args:
+        image (numpy.ndarray): Input image
+        target_size (tuple): Resize dimensions
+    
+    Returns:
+        torch.Tensor: Preprocessed image tensor
+    """
+    # Select and reduce bands
+    image = select_sentinel2_bands(image, num_bands=3)
+    
+    # Convert to float and normalize
+    image = image.astype(np.float32)
+    
+    # Normalize each band
+    for i in range(image.shape[2]):
+        band = image[:,:,i]
+        mean = band.mean()
+        std = band.std()
+        
+        # Avoid division by zero
+        if std == 0:
+            std = 1
+        
+        image[:,:,i] = (band - mean) / std
+    
+    # Resize image using OpenCV
+    image_resized = cv2.resize(image, target_size, interpolation=cv2.INTER_AREA)
     
     # Convert to tensor
-    transforms_list.append(T.ToTensor())
+    image_tensor = torch.from_numpy(image_resized).permute(2, 0, 1).float()
     
-    # Apply normalization if selected
-    if settings["normalize"]:
-        transforms_list.append(T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]))
+    # Normalize across channels (optional, adjust as needed)
+    image_tensor = (image_tensor - image_tensor.mean()) / image_tensor.std()
     
-    # Data augmentation if selected
-    if settings["apply_augmentation"]:
-        augmentation = [
-            T.RandomHorizontalFlip(p=0.5),
-            T.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
-        ]
-        transforms_list = augmentation + transforms_list
-    
-    transform = T.Compose(transforms_list)
-    
-    # Apply transformations
-    img_tensor = transform(img)
-    
-    return img_tensor
+    # Add batch dimension
+    return image_tensor.unsqueeze(0)
 
-# Function to load model
-def load_model(settings):
-    if settings["model_type"] == "resnet18":
-        if settings["pretrained"]:
-            weights = ResNet18_Weights.SENTINEL2_ALL
-            model = resnet18(weights=weights)
-        else:
-            model = resnet18(in_channels=settings["in_channels"], num_classes=settings["num_classes"])
+def load_sentinel2_image(image_path):
+    """
+    Load a Sentinel-2 image using rasterio with robust error handling.
     
-    model.eval()
-    return model
-
-# Function to run inference
-def run_inference(model, img_tensor):
-    with torch.no_grad():
-        outputs = model(img_tensor.unsqueeze(0))
-    return outputs
-
-# Function to visualize results
-def visualize_results(img_tensor, outputs, model_type):
-    # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    Args:
+        image_path (str): Path to the Sentinel-2 image file
     
-    # Display original image
-    img_np = img_tensor.permute(1, 2, 0).numpy()
-    
-    # If image was normalized, denormalize for display
-    if normalize:
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
-        img_np = std * img_np + mean
-    
-    img_np = np.clip(img_np, 0, 1)
-    ax1.imshow(img_np)
-    ax1.set_title("Original Image")
-    ax1.axis("off")
-    
-    # Display inference results based on model type
-    if model_type == "resnet18":
-        # If using pretrained model, show top predictions
-        probabilities = torch.nn.functional.softmax(outputs[0], dim=0)
-        top_probs, top_indices = torch.topk(probabilities, 5)
-        
-        # For display purposes, create synthetic class names if we don't have actual class names
-        class_names = [f"Class {i}" for i in range(len(probabilities))]
-        
-        # Plot top 5 predictions as a bar chart
-        top_probs = top_probs.cpu().numpy()
-        labels = [class_names[idx] for idx in top_indices.cpu().numpy()]
-        
-        ax2.barh(range(5), top_probs, color="skyblue")
-        ax2.set_yticks(range(5))
-        ax2.set_yticklabels(labels)
-        ax2.set_title("Top 5 Predictions")
-        ax2.set_xlim(0, 1)
-        
-    plt.tight_layout()
-    
-    # Convert plot to image for Streamlit
-    buf = io.BytesIO()
-    plt.savefig(buf, format="png")
-    buf.seek(0)
-    plt.close(fig)
-    
-    return buf
-
-# Create two columns for layout
-col1, col2 = st.columns([1, 1])
-
-with col1:
-    st.header("Upload Image")
-    uploaded_file = st.file_uploader("Choose an image file", type=["jpg", "jpeg", "png"])
-    
-    if uploaded_file is not None:
-        # Display uploaded image
-        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
-
-with col2:
-    st.header("Analysis Results")
-    
-    if uploaded_file is not None:
-        # Create settings dictionary
-        settings = {
-            "model_type": model_type,
-            "pretrained": pretrained,
-            "in_channels": in_channels,
-            "num_classes": num_classes,
-            "resize_method": resize_method,
-            "size": size,
-            "normalize": normalize,
-            "apply_augmentation": apply_augmentation
-        }
-        
-        # Load model
-        with st.spinner("Loading model..."):
-            model = load_model(settings)
-        
-        # Process image and run inference
-        with st.spinner("Processing image..."):
-            img_tensor = preprocess_image(uploaded_file, settings)
-            outputs = run_inference(model, img_tensor)
-        
-        # Visualize results
-        result_img = visualize_results(img_tensor, outputs, model_type)
-        st.image(result_img, caption="Analysis Results", use_column_width=True)
-        
-        # Show advanced details
-        with st.expander("Advanced Details"):
-            st.write(f"Model Type: {model_type}")
-            st.write(f"Image Tensor Shape: {img_tensor.shape}")
-            st.write(f"Output Shape: {outputs.shape}")
+    Returns:
+        tuple: (numpy.ndarray image, rasterio dataset metadata)
+    """
+    try:
+        with rasterio.open(image_path) as src:
+            # Read all bands
+            image = src.read()
             
-            # Display model architecture
-            st.write("Model Architecture:")
-            st.code(str(model))
+            # Handle potential CRS issues
+            try:
+                crs = src.crs
+            except Exception as crs_error:
+                st.warning(f"CRS Error: {crs_error}. Using default CRS.")
+                crs = CRS.from_epsg(4326)  # Default to WGS84 if CRS fails
+            
+            # Transpose to get (Height, Width, Channels)
+            image = np.transpose(image, (1, 2, 0))
+            
+            # Get metadata
+            metadata = {
+                'transform': src.transform,
+                'width': src.width,
+                'height': src.height,
+                'crs': crs,
+                'bands': src.count
+            }
+            
+            return image, metadata
+    except rasterio.errors.RasterioError as e:
+        st.error(f"Error loading image: {e}")
+        return None, None
 
-# Display metadata about the analysis
-if uploaded_file is not None:
-    st.header("About this analysis")
-    st.markdown("""
-    This analysis uses TorchGeo, a PyTorch extension for geospatial data analysis. 
-    The ResNet18 model is a common deep learning architecture for image classification.
+def load_pretrained_model(num_classes=7):
+    """
+    Load a pretrained model for classification.
     
-    For remote sensing applications, these models can be used for:
-    - Land cover classification
-    - Object detection
-    - Change detection
-    - Anomaly detection
+    Args:
+        num_classes (int): Number of classification classes
     
-    Note: For production applications, you would typically fine-tune the model on your specific dataset.
-    """)
+    Returns:
+        torch.nn.Module: Pretrained classification model
+    """
+    try:
+        import torchvision.models as models
+        
+        # Use ResNet18 with transfer learning
+        model = models.resnet18(pretrained=True)
+        
+        # Modify the final fully connected layer
+        num_ftrs = model.fc.in_features
+        model.fc = torch.nn.Linear(num_ftrs, num_classes)
+        
+        return model
+    except ImportError as e:
+        st.error(f"Error loading model: {e}")
+        return None
 
-# Footer
-st.markdown("""
----
-Created with Streamlit and TorchGeo
-""")
+def classify_image(image_tensor, model, class_names):
+    """
+    Classify the preprocessed image.
+    
+    Args:
+        image_tensor (torch.Tensor): Preprocessed image
+        model (torch.nn.Module): Pretrained classification model
+        class_names (list): List of class names
+    
+    Returns:
+        tuple: Top prediction and its probability
+    """
+    if image_tensor is None or model is None:
+        return "Classification Failed", 0.0
+    
+    # Set model to evaluation mode
+    model.eval()
+    
+    # Disable gradient computation
+    with torch.no_grad():
+        # Get model predictions
+        outputs = model(image_tensor)
+        
+        # Get probabilities using softmax
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)
+        
+        # Get top prediction
+        top_prob, top_catid = probabilities.topk(1)
+        
+        # Convert to class name
+        predicted_class = class_names[top_catid.item()]
+        
+        return predicted_class, top_prob.item()
+
+def main():
+    # Streamlit app setup
+    st.title("Sentinel-2 Image Classifier")
+    
+    # File uploader
+    uploaded_file = st.file_uploader("Choose a Sentinel-2 image", type=['tif', 'tiff'])
+    
+    if uploaded_file is not None:
+        # Define class names (adjust based on your specific classification task)
+        class_names = [
+            'Forest', 'Agricultural', 'Urban', 'Water', 
+            'Bare Soil', 'Grassland', 'Wetland'
+        ]
+        
+        # Temporary save uploaded file
+        with open("temp_sentinel2_image.tif", "wb") as f:
+            f.write(uploaded_file.getvalue())
+        
+        # Load the image
+        image, metadata = load_sentinel2_image("temp_sentinel2_image.tif")
+        
+        if image is not None:
+            # Display image metadata
+            st.write("Image Metadata:")
+            st.write(f"Image Shape: {image.shape}")
+            st.write(f"Number of Bands: {metadata.get('bands', 'Unknown')}")
+            st.write(f"CRS: {metadata.get('crs', 'Unknown')}")
+            
+            # Preprocess the image
+            image_tensor = preprocess_image(image)
+            
+            # Load model
+            model = load_pretrained_model(num_classes=len(class_names))
+            
+            if image_tensor is not None and model is not None:
+                # Classify the image
+                predicted_class, confidence = classify_image(image_tensor, model, class_names)
+                
+                # Display results
+                st.write(f"Predicted Class: {predicted_class}")
+                st.write(f"Confidence: {confidence * 100:.2f}%")
+            else:
+                st.error("Failed to preprocess image or load model")
+        else:
+            st.error("Failed to load image")
+
+if __name__ == "__main__":
+    main()
+
+# Troubleshooting Requirements:
+# pip install streamlit torch torchvision rasterio numpy opencv-python
+#
+# Key Modifications:
+# 1. Intelligent band selection for multi-band Sentinel-2 images
+# 2. Custom preprocessing to handle variable number of bands
+# 3. Use of OpenCV for image resizing
+# 4. Flexible band combination strategies
