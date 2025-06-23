@@ -1,96 +1,62 @@
-# Python Final Project: Web GIS Processing
+# Python Final Project: Satellite Image Classification Model Comparison
 
 ## Overview
 
-This project focuses on processing Sentinel-2 Level 1C satellite imagery using Python. It aims to provide tools and scripts for analyzing and visualizing geospatial data, facilitating tasks such as:
-
-* Reading and handling Sentinel-2 imagery
-* Performing basic image processing operations
-* Visualizing different spectral bands
-* Preparing data for further geospatial analysis
+This project provides utilities for classifying satellite images using various pre-trained models.
 
 ## Features
 
 * **Sentinel-2 Imagery Support**: Work with Level 1C products, including various spectral bands.
-* **Image Processing**: Apply operations like band extraction and visualization.
+* **Model Comparison**: Compare the performance of different classification models on satellite imagery.
 * **Modular Design**: Organized codebase for easy understanding and extension.
 
-## Getting Started
+## Setup Instructions
 
-### Prerequisites
+To get started, you'll need to set up a Conda environment with the necessary dependencies. Please choose the appropriate setup based on your operating system:
 
-* Python 3.7 or higher
-* Recommended to use a virtual environment
+### For Linux Users
 
-### Installation
+1. Navigate to the project root directory in your terminal.
+2. Create the Conda environment using the Linux-specific file:
 
-1. **Clone the repository**:
+    ```bash
+    conda env create -f environment-linux.yml
+    ```
 
-   ```bash
-   git clone https://github.com/python-amazing/python-final-project.git
-   cd python-final-project
-   ```
+3. Activate the environment:
 
-2. **Set up the environment**:
+    ```bash
+    conda activate classifier_comparison
+    ```
 
-   It's recommended to use a virtual environment:
+### For Windows Users
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+1. Navigate to the project root directory in your Anaconda Prompt or terminal.
+2. Create the Conda environment using the Windows-specific file:
 
-3. **Install dependencies**:
+    ```bash
+    conda env create -f environment-windows.yml
+    ```
 
-   The project uses a `requirements.yaml` file. If this is a conda environment file, you can create the environment using:
+3. Activate the environment:
 
-   ```bash
-   conda env create -f requirements.yaml
-   ```
+    ```bash
+    conda activate classifier_comparison
+    ```
 
-   If it's a pip requirements file, rename it to `requirements.txt` and install using:
+4. (Optional: If you have an NVIDIA GPU) Remember to edit `environment-windows.yml` to replace `cpuonly` with your specific `cudatoolkit` version *before* creating the environment, or install it afterward:
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+    ```bash
+      conda install pytorch torchvision cudatoolkit=<your_cuda_version> -c pytorch -c conda-forge
+    ```
 
-   *(Note: Please verify the format of `requirements.yaml` to ensure correct installation.)*
+## Running the Notebooks
 
-## Usage
+Once your environment is active, you can launch Jupyter Lab/Notebook:
 
-1. **Run the main script**:
-
-   ```bash
-   python 1__Home.py
-   ```
-
-   This script serves as the entry point to the application.
-
-2. **Input Data**:
-
-   Ensure that the Sentinel-2 `.tif` files are placed in the appropriate directory or update the script to point to their location.
-
-3. **Output**:
-
-   Processed images and results will be saved or displayed as per the script's functionality.
-
-## Project Structure
-
+```bash
+jupyter notebook
 ```
-├── 1__Home.py
-├── Sentinel2_Lvl1C_BGRNIRSWIR1SWIR2_20150813.tif
-├── temp_sentinel2_image.tif
-├── requirements.yaml
-├── LICENSE
-└── README.md
-```
-
-* `1__Home.py`: Main script to execute the application.
-* `Sentinel2_Lvl1C_BGRNIRSWIR1SWIR2_20150813.tif`: Sample Sentinel-2 imagery.
-* `temp_sentinel2_image.tif`: Temporary file generated during processing.
-* `requirements.yaml`: Dependencies required for the project.
-* `LICENSE`: Project's license information.
-* `README.md`: This file.
 
 ## Contributing
 
