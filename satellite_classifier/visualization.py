@@ -4,10 +4,12 @@ from PIL import Image
 import requests
 from io import BytesIO
 
-# Helper function (can be moved to a `data_utils.py` if needed elsewhere)
 def _load_image(image_path_or_url):
     """
     Helper function to load an image from a local path or URL.
+    
+    Args:
+        image_path_or_url (str): Path to local image or URL to satellite image
     """
     try:
         if image_path_or_url.startswith('http'):
