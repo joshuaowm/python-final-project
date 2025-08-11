@@ -55,6 +55,10 @@ def load_segmentation_model(architecture: str, encoder: str, num_classes: int, a
             model = smp.DeepLabV3(encoder_name=encoder, classes=num_classes, activation=activation)
         elif architecture.lower() == 'deeplabv3plus':
             model = smp.DeepLabV3Plus(encoder_name=encoder, classes=num_classes, activation=activation)
+        elif architecture.lower() == 'segformer':
+            model = smp.Segformer(encoder_name=encoder, classes=num_classes, activation=activation)
+        elif architecture.lower() == 'upernet':
+            model = smp.UPerNet(encoder_name=encoder, classes=num_classes, activation=activation)
         else:
             raise ValueError(f"Unsupported architecture: {architecture}")
         
@@ -184,7 +188,7 @@ def main():
     # Architecture selection
     architecture = st.sidebar.selectbox(
         "Architecture",
-        ['Unet', 'FPN', 'Linknet', 'PSPNet', 'PAN', 'DeepLabV3', 'DeepLabV3Plus'],
+        ['Unet', 'FPN', 'Linknet', 'PSPNet', 'PAN', 'DeepLabV3', 'DeepLabV3Plus', 'Segformer', 'UPerNet'],
         index=0,
         help="Choose the segmentation model architecture"
     )
