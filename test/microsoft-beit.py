@@ -15,7 +15,7 @@ feature_extractor = BeitFeatureExtractor.from_pretrained(checkpoint)
 model = BeitForSemanticSegmentation.from_pretrained(checkpoint).to(device).eval()
 
 # Load image
-image_path = "./test/test4.png"  # Change to your image path
+image_path = "./test/test.png"  # Change to your image path
 if not os.path.exists(image_path):
     raise FileNotFoundError(f"Image file not found: {image_path}")
 
