@@ -16,7 +16,7 @@ checkpoint = "smp-hub/segformer-b2-1024x1024-city-160k"
 model = smp.from_pretrained(checkpoint).eval().to(device)
 preprocessing = A.Compose.from_pretrained(checkpoint)
 
-# Load image from local path
+# Load image from local pathw
 image_path = "./test/test2.png"  # Replace with your image path
 
 # Check if image exists
