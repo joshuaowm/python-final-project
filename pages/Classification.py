@@ -40,6 +40,7 @@ st.markdown("""
         margin-bottom: 1rem;
     }
     .result-box {
+        background-color: #ebebe6;
         padding: 1rem;
         border-radius: 10px;
         margin: 1rem 0;
@@ -295,9 +296,9 @@ def main():
                             confidence_html = format_confidence(top_pred['confidence'])
                             st.markdown(f"""
                             <div class="result-box">
-                                <h4>🏆 Top Prediction</h4>
-                                <p><strong>Class:</strong> {top_pred['class']}</p>
-                                <p><strong>Confidence:</strong> {confidence_html}</p>
+                                <h4 style="color: #000">🏆 Top Prediction</h4>
+                                <p style="color: #000"><strong>Class:</strong> {top_pred['class']}</p>
+                                <p style="color: #000"><strong>Confidence:</strong> {confidence_html}</p>
                             </div>
                             """, unsafe_allow_html=True)
     
