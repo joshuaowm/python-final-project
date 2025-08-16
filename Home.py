@@ -235,7 +235,7 @@ def main():
                 <li>Environmental assessment</li>
                 <li>Urban planning</li>
             </ul>
-            <p style="color: #666; margin-top: 1rem;"><strong>📍 Go to Classification page to get started!</strong></p>
+            <p style="color: #666; margin-top: 1rem;"><strong>🔍 Go to Classification page to get started!</strong></p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -251,12 +251,12 @@ def main():
                 <li>Precision agriculture</li>
                 <li>Change detection</li>
             </ul>
-            <p style="color: #666; margin-top: 1rem;"><strong>📍 Go to Segmentation page to get started!</strong></p>
+            <p style="color: #666; margin-top: 1rem;"><strong>🔍 Go to Segmentation page to get started!</strong></p>
         </div>
         """, unsafe_allow_html=True)
     
     # Application workflow
-    st.markdown("## 🔄 How It Works")
+    st.markdown("## 📄 How It Works")
     
     workflow_steps = [
         {
@@ -314,7 +314,7 @@ def main():
             "SegFormer - Transformer-based semantic segmentation",
             "BEiT - BERT pre-trained image transformer",
             "DPT - Dense Prediction Transformer", 
-            "SAM - Segment Anything Model (prompt-based)",
+            "UperNet - Unified Perceptual Parsing for Scene Understanding",
             "SMP - Segmentation Models PyTorch library"
         ]
         
@@ -418,7 +418,7 @@ def main():
                 <p style="margin: 0; opacity: 0.9;">Analysis Types</p>
             </div>
             <div>
-                <h3 style="color: white; font-size: 2rem; margin: 0;">50+</h3>
+                <h3 style="color: white; font-size: 2rem; margin: 0;">160+</h3>
                 <p style="margin: 0; opacity: 0.9;">Land Cover Classes</p>
             </div>
             <div>
@@ -430,7 +430,7 @@ def main():
     """, unsafe_allow_html=True)
     
     # Getting started
-    st.markdown("## 🏁 Getting Started")
+    st.markdown("## 🚀 Getting Started")
     
     col1, col2 = st.columns(2)
     

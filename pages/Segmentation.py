@@ -131,14 +131,14 @@ def main():
         - **SegFormer**: Transformer-based models for semantic segmentation
         - **BEiT**: BERT pre-trained image transformer
         - **DPT**: Dense Prediction Transformer
-        - **SAM**: Segment Anything Model (requires prompts)
+        - **UperNet**: Unified Perceptual Parsing for Scene Understanding
         - **SMP**: Segmentation Models PyTorch library models
         """)
     with c3:
         st.markdown("""
         ### Tips:
         - Different models are trained on different datasets (Cityscapes, ADE20K)
-        - SAM works differently - it segments objects based on prompts (uses center point)
+        - UperNet combines multiple scales for detailed scene understanding
         - GPU acceleration will be used if available
         """)
 

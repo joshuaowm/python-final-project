@@ -20,10 +20,6 @@ from transformers.models.dpt import (
     DPTImageProcessor,
     DPTForSemanticSegmentation
 )
-from transformers.models.sam import (
-    SamProcessor,
-    SamModel
-)
 
 try:
     import segmentation_models_pytorch as smp
@@ -49,6 +45,10 @@ def load_transformers_model(model_name):
             except:
                 processor = BeitFeatureExtractor.from_pretrained(model_name)
             model = BeitForSemanticSegmentation.from_pretrained(model_name)
+        elif "upernet" in model_name.lower():
+            # UperNet models use Auto classes
+            processor = AutoImageProcessor.from_pretrained(model_name)
+            model = AutoModelForSemanticSegmentation.from_pretrained(model_name)
         else:
             processor = AutoImageProcessor.from_pretrained(model_name)
             model = AutoModelForSemanticSegmentation.from_pretrained(model_name)
@@ -61,16 +61,17 @@ def load_transformers_model(model_name):
         return None, None, None
 
 @st.cache_resource
-def load_sam_model(model_name):
-    """Load SAM model with caching"""
+def load_upernet_model(model_name):
+    """Load UperNet model with caching"""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     try:
-        processor = SamProcessor.from_pretrained(model_name)
-        model = SamModel.from_pretrained(model_name).to(device).eval()
+        processor = AutoImageProcessor.from_pretrained(model_name)
+        model = AutoModelForSemanticSegmentation.from_pretrained(model_name)
+        model = model.to(device).eval()
         return model, processor, device
     except Exception as e:
-        st.error(f"Error loading SAM model: {e}")
+        st.error(f"Error loading UperNet model: {e}")
         return None, None, None
 
 @st.cache_resource
@@ -97,8 +98,8 @@ def load_model(model_config):
     
     if model_type == "transformers":
         return load_transformers_model(model_name)
-    elif model_type == "sam":
-        return load_sam_model(model_name)
+    elif model_type == "upernet":
+        return load_upernet_model(model_name)
     elif model_type == "smp":
         return load_smp_model(model_name)
     else:
@@ -133,34 +134,34 @@ def process_transformers_model(image, model, processor, device):
     
     return predicted_mask, inference_time
 
-def process_sam_model(image, model, processor, device):
-    """Process image with SAM model"""
-    # SAM needs prompts - use center point
-    input_points = [[[image.width // 2, image.height // 2]]]
+def process_upernet_model(image, model, processor, device):
+    """Process image with UperNet model"""
+    original_size = image.size
     
-    inputs = processor(
-        images=image,
-        input_points=input_points,
-        return_tensors="pt"
-    ).to(device)
+    # Preprocess
+    inputs = processor(images=image, return_tensors="pt")
+    inputs = {k: v.to(device) for k, v in inputs.items()}
     
+    # Inference
     start_time = time.time()
     with torch.no_grad():
         outputs = model(**inputs)
     inference_time = time.time() - start_time
     
-    masks = outputs.pred_masks
-    mask = masks[0, 0, 0].cpu().numpy()
-    binary_mask = (mask > 0).astype(np.uint8)
+    # Post-process
+    logits = outputs.logits
     
-    # Resize if needed
-    if binary_mask.shape != (image.height, image.width):
-        from scipy.ndimage import zoom
-        zoom_h = image.height / binary_mask.shape[0]
-        zoom_w = image.width / binary_mask.shape[1]
-        binary_mask = zoom(binary_mask, (zoom_h, zoom_w), order=0).astype(np.uint8)
+    # Resize to original image size
+    upsampled_logits = torch.nn.functional.interpolate(
+        logits,
+        size=original_size[::-1],
+        mode="bilinear",
+        align_corners=False
+    )
     
-    return binary_mask, inference_time
+    predicted_mask = upsampled_logits.argmax(dim=1)[0].cpu().numpy()
+    
+    return predicted_mask, inference_time
 
 def process_smp_model(image, model, preprocessing, device):
     """Process image with SMP model"""
@@ -191,8 +192,8 @@ def process_image(image, model, processor, device, model_type):
     """Process image based on model type"""
     if model_type == "transformers":
         return process_transformers_model(image, model, processor, device)
-    elif model_type == "sam":
-        return process_sam_model(image, model, processor, device)
+    elif model_type == "upernet":
+        return process_upernet_model(image, model, processor, device)
     elif model_type == "smp":
         return process_smp_model(image, model, processor, device)
     else:
@@ -200,4 +201,4 @@ def process_image(image, model, processor, device, model_type):
 
 def is_binary_mask(model_type):
     """Check if model produces binary masks"""
-    return model_type == "sam"
+    return False  # UperNet produces multi-class masks, not binary

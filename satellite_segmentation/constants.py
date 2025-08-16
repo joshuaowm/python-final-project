@@ -1,3 +1,5 @@
+"""Constants for the satellite segmentation module"""
+
 AVAILABLE_MODELS = {
     "SegFormer Models": {
         "segformer-b5-cityscapes": {
@@ -25,16 +27,14 @@ AVAILABLE_MODELS = {
             "type": "transformers"
         }
     },
-    "SAM Models": {
-        "sam-vit-large": {
-            "model_name": "facebook/sam-vit-large",
-            "description": "SAM ViT-Large (Segment Anything)",
-            "type": "sam"
+    "UperNet Models": {
+        "upernet-swin-base": {
+            "model_name": "openmmlab/upernet-swin-base",
+            "description": "UperNet-Swin-Base ADE20K (150 classes)",
+            "type": "transformers"
         }
     }
 }
-
-"""Constants for the satellite segmentation module"""
 
 try:
     import segmentation_models_pytorch as smp
