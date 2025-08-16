@@ -12,7 +12,7 @@ import sys
 
 try:
     sys.path.append(os.path.abspath(os.path.join(os.getcwd(), '..')))
-    from satellite_classifier import load_pretrained_models, classify_satellite_image
+    from satellite_classifier import load_pretrained_models, classify_satellite_image, export_results
 except ImportError as e:
     st.error(f"Error importing modules: {e}")
     st.stop()
@@ -312,6 +312,44 @@ def main():
         if fig:
             st.pyplot(fig)
             plt.close(fig)  # Important to close the figure to prevent memory leaks
+            
+    # Export section
+    if hasattr(st.session_state, 'results'):
+        st.markdown("---")
+        st.subheader("💾 Export Results")
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            export_format = st.selectbox(
+                "Export format:",
+                options=["text", "json"],
+                help="Choose the format for exporting results"
+            )
+        
+        with col2:
+            if st.button("Export Results", type="primary"):
+                try:
+                    output_file = export_results(
+                        results=st.session_state.results,
+                        mode=export_format,
+                        output_dir="results"
+                    )
+                    
+                    # Create download button for the exported file
+                    with open(output_file, 'r') as f:
+                        file_content = f.read()
+                        
+                    filename = os.path.basename(output_file)
+                    st.download_button(
+                        label="📥 Download Results",
+                        data=file_content,
+                        file_name=filename,
+                        mime="text/plain" if export_format == "text" else "application/json"
+                    )
+                    
+                    st.success(f"Results exported successfully! Click the download button above to save the file.")
+                except Exception as e:
+                    st.error(f"Error exporting results: {e}")
     
     # Information section
     st.markdown("---")
