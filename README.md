@@ -1,67 +1,76 @@
-# Python Final Project: Satellite Image Classification Model Comparison
+# Satellite Image Classification Model Comparison
 
 ## Overview
 
-This project provides utilities for classifying satellite images using various pre-trained models.
+This project provides a comprehensive toolkit for comparing different machine learning models on satellite image classification tasks. It supports analysis of Sentinel-2 imagery and includes multiple pre-trained models for comparison.
 
 ## Features
 
-* **Sentinel-2 Imagery Support**: Work with Level 1C products, including various spectral bands.
-* **Model Comparison**: Compare the performance of different classification models on satellite imagery.
-* **Modular Design**: Organized codebase for easy understanding and extension.
+- **Multiple Model Support**: Compare predictions from various pre-trained models
+- **Interactive Visualization**: Side-by-side comparison of model outputs
+- **Flexible Input Formats**: Support for PNG, JPEG, TIFF, and direct URL inputs 
+- **GPU Acceleration**: CUDA-enabled processing for faster inference
+- **Export Options**: Save results in multiple formats (GeoTIFF, PNG)
+- **Streamlit Interface**: User-friendly web interface for model interaction
 
-## Setup Instructions
+## Installation
 
-To get started, you'll need to set up a Conda environment with the necessary dependencies. Please choose the appropriate setup based on your operating system:
+### Prerequisites
+
+- Python 3.9+
+- Conda package manager
 
 ### For Linux Users
 
-1. Navigate to the project root directory in your terminal.
-2. Create the Conda environment using the Linux-specific file:
+```bash
+# Create conda environment
+conda env create -f [environment-linux.yml](http://_vscodecontentref_/1)
 
-    ```bash
-    conda env create -f environment-linux.yml
-    ```
-
-3. Activate the environment:
-
-    ```bash
-    conda activate classifier_comparison
-    ```
+# Activate environment
+conda activate classifier_comparison
+```
 
 ### For Windows Users
 
-1. Navigate to the project root directory in your Anaconda Prompt or terminal.
-2. Create the Conda environment using the Windows-specific file:
+```bash
+conda env create -f [environment-windows.yml](http://_vscodecontentref_/2)
 
-    ```bash
-    conda env create -f environment-windows.yml
-    ```
+# Activate environment
+conda activate classifier_comparison
+```
 
-3. Activate the environment:
-
-    ```bash
-    conda activate classifier_comparison
-    ```
-
-4. (Optional: If you have an NVIDIA GPU) Remember to edit `environment-windows.yml` to replace `cpuonly` with your specific `cudatoolkit` version *before* creating the environment, or install it afterward:
-
-    ```bash
-      conda install pytorch torchvision cudatoolkit=<your_cuda_version> -c pytorch -c conda-forge
-    ```
-
-## Running the Notebooks
-
-Once your environment is active, you can launch Jupyter Lab/Notebook:
+For NVIDIA GPU users: Edit environment-windows.yml to include your CUDA version or install separately:
 
 ```bash
-jupyter notebook
+conda install pytorch torchvision cudatoolkit=<your_cuda_version> -c pytorch -c conda-forge
+```
+
+## Usage
+
+### Running the Web Interface
+
+```bash
+streamlit run Home.py
+```
+
+### Using Jupyter Notebooks
+
+Example notebooks are provided in the notebooks directory
+
+- satellite_classification_demo.ipynb: Basic classification workflow
+- example_use_cases.ipynb: Common use case examples
+- user_interaction_flow.ipynb: Interface navigation guide
+
+## Project Structure
+
+```bash
+├── data/                   # Sample data and test images
+├── notebooks/             # Jupyter notebooks with examples
+├── pages/                 # Streamlit interface pages
+├── satellite_classifier/  # Core classification code
+└── satellite_segmentation/# Segmentation utilities
 ```
 
 ## Contributing
 
-Contributions are welcome! Please fork the repository and submit a pull request for any enhancements or bug fixes.
-
-## License
-
-This project is licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
+Contributions are welcome ! Please feel free to submit a pull request.
