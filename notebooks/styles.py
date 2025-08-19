@@ -39,6 +39,23 @@ class NotebookStyles:
             </div>
         </div>
         """)
+        
+    @staticmethod
+    def session_header_2(title="🛰️ Semantic Segmentation Demo", subtitle=""):
+        """Create the main session header"""
+        timestamp = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+        return HTML(f"""
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                   padding: 20px; border-radius: 15px; color: white; margin: 20px 0;">
+            <h2 style="margin: 0; font-weight: 300;">{title}</h2>
+            <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 1.1em;">
+                {subtitle}
+            </p>
+            <div style="margin-top: 10px; font-size: 0.9em; opacity: 0.8;">
+                🔬 Analysis Session Started: {timestamp}
+            </div>
+        </div>
+        """)
     
     @staticmethod
     def loading_spinner(text="Loading..."):

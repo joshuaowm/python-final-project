@@ -15,13 +15,13 @@ from satellite_segmentation.visualization import create_visualization, create_cl
 # Page config
 st.set_page_config(
     page_title="Semantic Segmentation Hub",
-    page_icon="🎯",
+    page_icon="🗺️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 def main():
-    st.title("🎯 Semantic Segmentation Hub")
+    st.title("🗺️ Semantic Segmentation Hub")
     st.markdown("Upload an image and choose a model to perform semantic segmentation")
     
     # Get available models
@@ -50,7 +50,7 @@ def main():
     # Model info
     st.sidebar.markdown("### Model Info")
     st.sidebar.write(f"**Model:** {selected_config['description']}")
-    st.sidebar.write(f"**Type:** {selected_config['type'].upper()}")
+    st.sidebar.write(f"**Dataset:** {selected_config['dataset'].upper()}")
     
     col1, col2 = st.columns([2,1])
     with col1:
@@ -115,36 +115,48 @@ def main():
                     fig = create_class_distribution_chart(mask)
                     st.pyplot(fig)
     
-    # Instructions
-    c1, c2, c3 = st.columns([1,1,1])
-    with c1:
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
+    
+    # Information section
+    with st.expander("🧠 About the Models"):
         st.markdown("""
-        ### Instructions:
-        1. **Select a model** from the sidebar
-        2. **Upload an image** using the file uploader
-        3. **Click "Run Segmentation"** to process the image
-        4. **View results** including the original image, segmentation mask, and overlay
-        """)
-    with c2:
+    - **SegFormer-B5 (Cityscapes)** [🔗](https://huggingface.co/nvidia/segformer-b5-finetuned-cityscapes-1024-1024)<br> 
+        A transformer-based semantic segmentation model from **NVIDIA**, using the large **B5 variant**.    
+        Trained on the **Cityscapes dataset (19 classes)** for urban scene understanding.  
+
+    - **SegFormer-B2 (ADE20K)** [🔗](https://huggingface.co/nvidia/segformer-b2-finetuned-ade-512-512)<br>
+        A medium-sized **B2 variant** of NVIDIA’s SegFormer.    
+        Trained on **ADE20K (150 classes)**, suitable for broad scene parsing.    
+
+    - **BEiT-Base (ADE20K)** [🔗](https://huggingface.co/microsoft/beit-base-finetuned-ade-640-640)<br>
+        A **BERT-style image transformer** by **Microsoft**, adapted for segmentation.  
+        Fine-tuned on **ADE20K (150 classes)** for dense semantic segmentation.    
+
+    - **DPT-Large (ADE20K)** [🔗](https://huggingface.co/Intel/dpt-large-ade)<br>
+        The **large variant** of the Dense Prediction Transformer (DPT) by **Intel**.  
+        Pre-trained and fine-tuned on **ADE20K (150 classes)** for segmentation and other dense tasks.    
+
+    - **UperNet-Swin-Base (ADE20K)** [🔗](https://huggingface.co/openmmlab/upernet-swin-base)<br>
+        A **UperNet architecture** using a **Swin Transformer-Base** backbone, from **OpenMMLab**.  
+        Trained on **ADE20K (150 classes)** for comprehensive scene parsing.    
+
+    - **SMP (Segmentation Models PyTorch)** [🔗](https://github.com/qubvel/segmentation_models.pytorch)<br>
+        A library offering multiple architectures (**U-Net, FPN, DeepLabV3+**, etc.) with various backbones.  
+        Widely used for training custom segmentation pipelines.    
+    """, unsafe_allow_html=True)
+
+
+        
+    with st.expander("ℹ️ Usage Tips"):
         st.markdown("""
-        ### Available Models:
-        - **SegFormer**: Transformer-based models for semantic segmentation
-        - **BEiT**: BERT pre-trained image transformer
-        - **DPT**: Dense Prediction Transformer
-        - **UperNet**: Unified Perceptual Parsing for Scene Understanding
-        - **SMP**: Segmentation Models PyTorch library models
-        """)
-    with c3:
-        st.markdown("""
-        ### Tips:
         - Different models are trained on different datasets (Cityscapes, ADE20K)
         - UperNet combines multiple scales for detailed scene understanding
-        - GPU acceleration will be used if available
+        - GPU acceleration will automatically be used if available
         """)
 
     # Footer
     st.markdown("---")
-    st.markdown("Built with ❤️ using Streamlit and PyTorch")
+    st.markdown("Built with ❤️ using Streamlit, 🔥PyTorch and 🤗Transformers")
 
 if __name__ == "__main__":
     main()

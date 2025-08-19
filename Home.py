@@ -13,7 +13,7 @@ import base64
 # Page config - this should be the first Streamlit command
 st.set_page_config(
     page_title="Satellite Image Analysis Hub",
-    page_icon="🛰️",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -60,7 +60,7 @@ st.markdown("""
     }
     .navigation-card {
         background: white;
-        padding: 2rem;
+        padding: 1rem 2rem;
         border-radius: 15px;
         border: 2px solid #1f77b4;
         text-align: center;
@@ -96,6 +96,7 @@ st.markdown("""
         padding: 1rem;
         border-radius: 8px;
         border: 1px solid #d0e7f0;
+        margin-bottom: 0.5rem;
     }
     .stats-container {
         background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -107,7 +108,7 @@ st.markdown("""
     }
     .workflow-step {
         background: white;
-        padding: 1.5rem;
+        padding: 0.6rem 1.5rem;
         border-radius: 10px;
         margin: 1rem 0;
         border: 2px solid #e0e0e0;
@@ -133,61 +134,19 @@ st.markdown("""
         border-radius: 10px;
         margin-bottom: 1rem;
     }
+    strong {
+        color: #1f77b4;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-def create_demo_visualization():
-    """Create a demo visualization showing satellite image analysis workflow"""
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    
-    # Create sample data for demonstration
-    np.random.seed(42)
-    
-    # Original image (simulate satellite image)
-    original = np.random.rand(100, 100, 3)
-    original = np.clip(original * 0.8 + 0.1, 0, 1)  # Make it look more realistic
-    
-    # Classification visualization
-    classes = ['Forest', 'Urban', 'Water', 'Agriculture', 'Desert']
-    confidences = [0.85, 0.72, 0.65, 0.58, 0.42]
-    colors = ['#2E8B57', '#DC143C', '#4169E1', '#32CD32', '#F4A460']
-    
-    axes[0].imshow(original)
-    axes[0].set_title('Original Satellite Image', fontsize=14, fontweight='bold')
-    axes[0].axis('off')
-    
-    axes[1].barh(classes, confidences, color=colors, alpha=0.8)
-    axes[1].set_xlabel('Confidence Score')
-    axes[1].set_title('Classification Results', fontsize=14, fontweight='bold')
-    axes[1].set_xlim(0, 1)
-    for i, v in enumerate(confidences):
-        axes[1].text(v + 0.02, i, f'{v:.2f}', va='center', fontweight='bold')
-    
-    # Segmentation mask
-    segmentation = np.random.randint(0, 5, (100, 100))
-    im = axes[2].imshow(segmentation, cmap='tab10', alpha=0.8)
-    axes[2].set_title('Segmentation Mask', fontsize=14, fontweight='bold')
-    axes[2].axis('off')
-    
-    plt.tight_layout()
-    
-    # Convert plot to base64 string for embedding
-    buffer = io.BytesIO()
-    plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight')
-    buffer.seek(0)
-    plot_data = buffer.getvalue()
-    buffer.close()
-    plt.close()
-    
-    return base64.b64encode(plot_data).decode()
 
 def main():
     # Sidebar navigation
     st.sidebar.markdown("""
     <div class="sidebar-nav">
-        <h2 style="color: #1f77b4; text-align: center; margin-bottom: 1rem;">🛰️ Navigation</h2>
+        <h2 style="color: #1f77b4; text-align: center; margin-bottom: 1rem;">📍 Navigation</h2>
         <p style="text-align: center; color: #666; margin-bottom: 1rem;">
-            Welcome to the Satellite Image Analysis Hub! Use the pages below to analyze your satellite and aerial imagery.
+            Welcome to the Satellite Image Analysis Hub! Use the pages above to analyze your satellite and aerial imagery.
         </p>
     </div>
     """, unsafe_allow_html=True)
@@ -211,15 +170,18 @@ def main():
     # Main content
     # Header
     st.markdown('<h1 class="main-header">🛰️ Satellite Image Analysis Hub</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Advanced AI-powered satellite and aerial image classification and segmentation</p>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle">AI-powered platform for rapid satellite and aerial image analysis. Instantly classify and segment images with multiple state-of-the-art models to gain quick insights</p>', unsafe_allow_html=True)
     
+    st.markdown('<div style="height:10px;"></div>', unsafe_allow_html=True)
+                
     # Demo visualization
-    st.markdown("### 📊 What This Application Does")
-    demo_plot = create_demo_visualization()
-    st.markdown(f'<img src="data:image/png;base64,{demo_plot}" style="width:100%; border-radius:10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">', unsafe_allow_html=True)
+    st.markdown("## 🔦 What This Application Does")
+    st.image("results/example.jpg", caption="Segmentation and Classification Results Example", use_container_width=True)
+    
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
     
     # Navigation cards
-    st.markdown("## 🎯 Choose Your Analysis Type")
+    st.markdown("## 👇 Choose Your Analysis Type")
     
     col1, col2 = st.columns(2)
     
@@ -255,6 +217,8 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
+    
     # Application workflow
     st.markdown("## 📄 How It Works")
     
@@ -286,18 +250,24 @@ def main():
         </div>
         """, unsafe_allow_html=True)
     
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
+    
     # Available models section
-    st.markdown("## 🤖 Available Models")
+    st.markdown("## 🧠 Available Models")
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### Classification Models")
+        st.markdown("""
+        <div style="text-align: center;">
+            <h4>🎯 Classification Models</h4>
+        </div>
+        """, unsafe_allow_html=True)
         classification_models = [
-            "EuroSAT Models - European satellite imagery (10 land cover classes)",
-            "Land Cover Models - General land cover classification (8 classes)", 
-            "Aerial Models - Aerial imagery classification (12 classes)",
-            "ImageNet Models - Adapted for satellite imagery"
+            "EuroSAT Models - 10-class European land cover imagery",
+            "Land Cover Models - 8-class global land cover detection", 
+            "Aerial Models - 12-class aerial scene classification",
+            "ImageNet Models - ImageNet-based, adapted for remote sensing"
         ]
         
         for model in classification_models:
@@ -309,13 +279,17 @@ def main():
             """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("### Segmentation Models")
+        st.markdown("""
+        <div style="text-align: center;">
+            <h4>🗺️ Segmentation Models</h4>
+        </div>
+        """, unsafe_allow_html=True)
         segmentation_models = [
-            "SegFormer - Transformer-based semantic segmentation",
-            "BEiT - BERT pre-trained image transformer",
-            "DPT - Dense Prediction Transformer", 
-            "UperNet - Unified Perceptual Parsing for Scene Understanding",
-            "SMP - Segmentation Models PyTorch library"
+            "SegFormer - Transformer-based segmentation for high accuracy",
+            "BEiT - Pre-trained vision transformer for dense prediction",
+            "DPT - Transformer for fine-grained depth & segmentation",
+            "UperNet - Multi-scale parsing for detailed scene understanding",
+            "SMP - PyTorch library with diverse segmentation architectures"
         ]
         
         for model in segmentation_models:
@@ -325,6 +299,8 @@ def main():
                 <small style="color: #666;">{model.split(' - ')[1]}</small>
             </div>
             """, unsafe_allow_html=True)
+    
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
     
     # Use cases
     st.markdown("## 🌍 Use Cases & Applications")
@@ -379,6 +355,8 @@ def main():
                 </div>
                 """, unsafe_allow_html=True)
     
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
+    
     # Technical specifications
     st.markdown("""
     <div class="tech-section">
@@ -404,6 +382,8 @@ def main():
     </div>
     """, unsafe_allow_html=True)
     
+    st.markdown('<div style="height:25px;"></div>', unsafe_allow_html=True) # Gap
+    
     # Statistics
     st.markdown("""
     <div class="stats-container">
@@ -428,47 +408,7 @@ def main():
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Getting started
-    st.markdown("## 🚀 Getting Started")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        ### 🎯 For Image Classification:
-        1. Navigate to the **Classification** page in the sidebar
-        2. Upload your satellite or aerial image
-        3. Select one or more classification models
-        4. Click "Classify Image" and view results
-        5. Compare predictions across different models
-        """)
-    
-    with col2:
-        st.markdown("""
-        ### 🗺️ For Semantic Segmentation:
-        1. Go to the **Segmentation** page in the sidebar
-        2. Upload your image for pixel-level analysis
-        3. Choose a segmentation model
-        4. Run segmentation and explore the results
-        5. Analyze class distributions and statistics
-        """)
-    
-    # Best practices
-    st.markdown("## 💡 Best Practices & Tips")
-    
-    tips = [
-        "**Image Quality**: Use high-resolution images (minimum 224x224 pixels) for better results",
-        "**Model Selection**: Try multiple models to get comprehensive analysis - different models excel at different tasks",
-        "**Image Types**: Works best with satellite imagery, aerial photos, and drone footage",
-        "**Confidence Scores**: Pay attention to confidence scores - higher scores (>0.7) indicate more reliable predictions",
-        "**Preprocessing**: Images are automatically preprocessed, but ensure good lighting and clarity",
-        "**Comparison**: Use both classification and segmentation for complete image understanding"
-    ]
-    
-    for tip in tips:
-        st.markdown(f"• {tip}")
-    
+        
     # Footer
     st.markdown("---")
     

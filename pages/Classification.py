@@ -20,7 +20,7 @@ except ImportError as e:
 # Configure page
 st.set_page_config(
     page_title="Satellite Image Classifier",
-    page_icon="🛰️",
+    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -142,30 +142,23 @@ def load_models():
         return load_pretrained_models()
 
 def main():
-    st.title("🛰️ Satellite Image Classifier")
+    st.title("🎯 Satellite Image Classifier")
     st.markdown("Upload a satellite or aerial image to classify it using multiple deep learning models.")
     
-    # Sidebar
-    st.sidebar.header("Configuration")
-    
-    # Model selection
-    st.sidebar.subheader("Model Selection")
-    models = load_models()
-    
-    if not models:
-        st.error("No models were loaded successfully. Please check the console for error messages.")
-        return
-    
+    # Sidebar: Model selection
+    st.sidebar.header("Model Selection")
+    models = load_pretrained_models()
     available_models = list(models.keys())
+    default_models = available_models[:2] if len(available_models) >= 2 else available_models
     selected_models = st.sidebar.multiselect(
-        "Select models to use:",
+        "Select models:",
         available_models,
-        default=available_models
+        default=default_models
     )
-    
     if not selected_models:
         st.warning("Please select at least one model.")
         return
+    filtered_models = {name: models[name] for name in selected_models}
     
     # Filter models based on selection
     filtered_models = {name: models[name] for name in selected_models}
@@ -351,19 +344,19 @@ def main():
                 except Exception as e:
                     st.error(f"Error exporting results: {e}")
     
+    st.markdown('<div style="height:30px;"></div>', unsafe_allow_html=True) # Gap
+    
     # Information section
-    st.markdown("---")
-    with st.expander("ℹ️ About the Models"):
+    with st.expander("🧠 About the Models"):
         st.markdown("""
-        This application uses multiple deep learning models for satellite image classification:
-        
-        **Model Types:**
         - **EuroSAT Models**: Specialized for European satellite imagery with 10 land cover classes
         - **Land Cover Models**: General land cover classification with 8 classes
         - **Aerial Models**: Aerial imagery classification with 12 classes  
         - **ImageNet Models**: General-purpose models adapted for satellite imagery
+        """)
         
-        **Usage Tips:**
+    with st.expander("ℹ️ Usage Tips"):
+        st.markdown("""
         - Upload high-quality satellite or aerial images for best results
         - Different models may focus on different aspects of the image
         - Compare results across models to get a comprehensive understanding
@@ -372,7 +365,7 @@ def main():
     
     # Footer
     st.markdown("---")
-    st.markdown("Built with ❤️ using Streamlit and PyTorch")
+    st.markdown("Built with ❤️ using Streamlit and 🔥PyTorch")
 
 if __name__ == "__main__":
     main()
