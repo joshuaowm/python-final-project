@@ -466,6 +466,38 @@ class NotebookStyles:
             </p>
         </div>
         """)
+    
+    @staticmethod
+    def segmentation_model_card(model_info):
+        """Create an info card displaying segmentation model details"""
+        return HTML(f"""
+        <div style="background: #f8f9fa; border: 1px solid #dee2e6; 
+                    border-radius: 8px; padding: 15px; margin: 10px 0;">
+            <h4 style="margin-top: 0; color: #1a73e8;">🤖 Model Configuration</h4>
+            <ul style="list-style-type: none; padding-left: 0;">
+                <li>📌 Name: {model_info['name']}</li>
+                <li>📊 Architecture: {model_info['architecture']}</li>
+                <li>📚 Dataset: {model_info['dataset']}</li>
+                <li>🖼️ Input Resolution: {model_info['resolution']}</li>
+                <li>💫 Parameters: {model_info['parameters']}</li>
+            </ul>
+        </div>
+        """)
+
+    @staticmethod
+    def segmentation_results_card(metrics):
+        """Display segmentation metrics and stats"""
+        return HTML(f"""
+        <div style="background: #e3f2fd; border: 1px solid #90caf9;
+                    border-radius: 8px; padding: 15px; margin: 10px 0;">
+            <h4 style="margin-top: 0; color: #1565c0;">📊 Segmentation Results</h4>
+            <ul style="list-style-type: none; padding-left: 0;">
+                <li>⏱️ Processing Time: {metrics['time']:.2f}s</li>
+                <li>🎯 IoU Score: {metrics['iou']:.3f}</li>
+                <li>✨ Pixel Accuracy: {metrics['accuracy']:.3f}</li>
+            </ul>
+        </div>
+        """)
 
 
 # Convenience function to display styles

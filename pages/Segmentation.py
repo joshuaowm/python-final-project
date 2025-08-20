@@ -22,7 +22,7 @@ st.set_page_config(
 
 def main():
     st.title("🗺️ Semantic Segmentation Hub")
-    st.markdown("Upload an image and choose a model to perform semantic segmentation")
+    st.markdown("Upload an image and choose a model to perform semantic segmentation based on the selected model's dataset.")
     
     # Get available models
     available_models = get_available_models()

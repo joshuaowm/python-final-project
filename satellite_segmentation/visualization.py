@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from .processing import create_color_palette
+from .constants import AVAILABLE_MODELS, CITYSCAPES_LABELS, get_ade
 
 def create_visualization(original_image, mask, model_name, is_binary=False):
     """Create visualization plots"""
@@ -46,16 +47,60 @@ def create_visualization(original_image, mask, model_name, is_binary=False):
     plt.tight_layout()
     return fig
 
-def create_class_distribution_chart(mask):
-    """Create class distribution bar chart"""
+def create_class_distribution_chart(mask, model_key=None):
+    """Create class distribution bar chart with human-readable labels"""    
     unique_labels, counts = np.unique(mask, return_counts=True)
-    
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.bar(range(len(unique_labels)), counts)
-    ax.set_xlabel("Class ID")
+    max_class = int(max(unique_labels))
+
+    # Auto-detect dataset if model_key not provided
+    if model_key is None:
+        if max_class <= 18:  # Likely Cityscapes (19 classes, 0-18)
+            label_map = CITYSCAPES_LABELS
+            dataset = "cityscapes"
+        elif max_class <= 149:  # Likely ADE20K (150 classes, 0-149)
+            label_map = {}  # Would need a model name to get ADE labels
+            dataset = "ade20k"
+        else:
+            label_map = {}
+            dataset = "unknown"
+    else:
+        # Use the previous logic with model_key
+        model_info = None
+        for category, models in AVAILABLE_MODELS.items():
+            if model_key in models:
+                model_info = models[model_key]
+                break
+        
+        if model_info:
+            dataset = model_info.get("dataset", "").lower()
+            model_name = model_info.get("model_name")
+            
+            # Select label mapping
+            if "cityscapes" in dataset:
+                label_map = CITYSCAPES_LABELS
+            elif "ade20k" in dataset:
+                label_map = get_ade(model_name) or {}
+            else:
+                label_map = {}
+        else:
+            dataset = "unknown"
+            label_map = {}
+
+    # Convert IDs to labels (fallback to Class ID if missing)
+    labels = [label_map.get(int(l), f"Class {l}") for l in unique_labels]
+
+    fig, ax = plt.subplots(figsize=(12, 6))
+    bars = ax.bar(range(len(labels)), counts)
+    ax.set_xlabel("Class")
     ax.set_ylabel("Pixel Count")
-    ax.set_title("Distribution of Classes in Segmentation")
-    ax.set_xticks(range(len(unique_labels)))
-    ax.set_xticklabels(unique_labels)
+    ax.set_title(f"Distribution of Classes in Segmentation ({dataset})")
+    ax.set_xticks(range(len(labels)))
+    ax.set_xticklabels(labels, rotation=45, ha="right")
     
+    # Add value labels on bars
+    for bar, count in zip(bars, counts):
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height(),
+                f'{count}', ha='center', va='bottom')
+    
+    plt.tight_layout()
     return fig

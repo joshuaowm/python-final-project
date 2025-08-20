@@ -56,8 +56,51 @@ def get_available_models():
             "smp-segformer-city": {
                 "model_name": "smp-hub/segformer-b2-1024x1024-city-160k",
                 "description": "SMP SegFormer-B2 Cityscapes",
-                "type": "smp"
+                "type": "smp",
+                "dataset": "Cityscapes (19 classes)"
             }
         }
     
     return models
+
+# Cityscapes Label Dataset (19 classes) 
+CITYSCAPES_LABELS = {
+    0: "road",
+    1: "sidewalk",
+    2: "building",
+    3: "wall",
+    4: "fence",
+    5: "pole",
+    6: "traffic light",
+    7: "traffic sign",
+    8: "vegetation",
+    9: "terrain",
+    10: "sky",
+    11: "person",
+    12: "rider",
+    13: "car",
+    14: "truck",
+    15: "bus",
+    16: "train",
+    17: "motorcycle",
+    18: "bicycle"
+}
+
+# ADE20K Label Auto Load (150 classes)
+from transformers import AutoProcessor
+def get_ade(model_name: str):
+    """
+    Try to load label mappings from Hugging Face processor/config.
+    Falls back to manual CITYSCAPES if needed.
+    """
+    try:
+        processor = AutoProcessor.from_pretrained(model_name)
+
+        if hasattr(processor, "id2label"):
+            return processor.id2label  # dict {id: label}
+        elif hasattr(processor, "decode"):
+            return processor.decode  # sometimes stored differently
+    except Exception as e:
+        print(f"⚠️ Could not load label map from {model_name}: {e}")
+
+    return None
