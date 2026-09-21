@@ -24,7 +24,7 @@ This project is an AI-powered platform for rapid satellite and aerial image anal
 
 ```bash
 # Create conda environment
-conda env create -f [environment-linux.yml](http://_vscodecontentref_/1)
+conda env create -f environment-linux.yml
 
 # Activate environment
 conda activate classifier_comparison
@@ -33,7 +33,7 @@ conda activate classifier_comparison
 ### For Windows Users
 
 ```bash
-conda env create -f [environment-windows.yml](http://_vscodecontentref_/2)
+conda env create -f environment-windows.yml
 
 # Activate environment
 conda activate classifier_comparison
@@ -55,7 +55,7 @@ streamlit run Home.py
 
 ### Using Jupyter Notebooks
 
-Example notebooks are provided in the notebooks directory
+Example notebooks are provided in the `notebooks` directory:
 
 - satellite_classification_demo.ipynb: Classification workflow
 - semantic_segmentation_demo.ipynb: Segmentation workflow
@@ -64,17 +64,21 @@ Example notebooks are provided in the notebooks directory
 
 ## Project Structure
 
-```bash
-├── data/                   # Sample data and test images
-├── notebooks/             # Jupyter notebooks with examples
-├── pages/                 # Streamlit interface pages
-├── satellite_classifier/  # Core classification code
-└── satellite_segmentation/# Segmentation utilities
+```
+├── Home.py                   # Streamlit entry point
+├── pages/                    # Streamlit pages (classification, segmentation)
+├── satellite_classifier/     # Core classification code
+├── satellite_segmentation/   # Segmentation utilities
+├── notebooks/                # Jupyter notebooks with examples
+├── data/                     # Sample data and test images
+├── results/                  # Example outputs
+├── test/                     # Segmentation outputs from the tested models
+└── environment-*.yml         # Conda environments for Linux and Windows
 ```
 
 ## Contributing
 
-Contributions are welcome ! Please feel free to submit a pull request.
+Contributions are welcome! Please feel free to submit a pull request.
 
 ## Developers
 
